@@ -1,6 +1,9 @@
 import asyncio
 import logging
 from bot_giblets import bot, dp
+from handlers import command_handlers
+
+dp.include_router(command_handlers.router)
 
 
 async def main():
