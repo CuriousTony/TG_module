@@ -1,10 +1,12 @@
 import asyncio
 import logging
 from bot_giblets import bot, dp
-from handlers import command_handlers
+from handlers import command_handlers, callback_handlers
 from keyboards import reply
 
-dp.include_router(command_handlers.router)
+dp.include_routers(command_handlers.router,
+                   callback_handlers.router
+                   )
 
 
 async def main():

@@ -4,12 +4,13 @@ import sqlite3
 from aiogram.fsm.context import FSMContext
 from gtts import gTTS
 from googletrans import Translator
-from aiogram.types import Message, FSInputFile
+from aiogram.types import Message, FSInputFile, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram import Router, F
 from bot_giblets import bot
 from table.db_form import FormDB
 from keyboards.reply import start_keyboard
+from keyboards.inline import links_keyboard, dynamic_keyboard
 
 router = Router()
 
@@ -62,7 +63,9 @@ async def handle_help(message: Message):
     await message.answer('В текущей версии я умею:\n'
                          '/start - запуск бота;\n'
                          '/help - справка по командам;\n'
-                         '/apply - записаться в кружок\n'
+                         '/apply - записаться в кружок;\n'
+                         '/links - ссылки на внешние ресурсы;\n'
+                         '/dynamic - демонстрация динамических клавиатур;\n'
                          '/аудио - пришлю аудиофайл;\n'
                          '/треня - пришлю озувучку случайной тренировки\n'
                          '/перевод "текст" - переведу текст на английский')
@@ -107,6 +110,16 @@ async def translate(message: Message, command: CommandObject):
         await bot.send_message(message.chat.id, f'{message.from_user.username} says: "{translated.text}"')
 
 
+@router.message(Command('links', ignore_case=True))
+async def handle_links(message: Message):
+    await message.answer('Выбирайте досуг:', reply_markup=links_keyboard)
+
+
+@router.message(Command('dynamic'))
+async def handle_dynamic(message: Message):
+    await message.answer('Динамичные кнопки!', reply_markup=dynamic_keyboard)
+
+
 @router.message(F.text == 'Привет')
 async def handle_hello(message: Message):
     await message.answer(f'Привет, {message.from_user.first_name} ✌')
@@ -114,4 +127,4 @@ async def handle_hello(message: Message):
 
 @router.message(F.text == 'Пока')
 async def handle_bye(message: Message):
-    await message.answer(f'Пока, {message.from_user.first_name} 👋')
+    await message.answer(f'Пока, {message.from_user.first_name} 👋', reply_markup=ReplyKeyboardRemove())
