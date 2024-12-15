@@ -9,13 +9,15 @@ from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram import Router, F
 from bot_giblets import bot
 from table.db_form import FormDB
+from keyboards.reply import start_keyboard
 
 router = Router()
 
 
-@router.message(CommandStart(ignore_case=True))
-async def handle_start(message: Message, state: FSMContext):
-    await message.answer('Привет, я Зеробот!\nА как зовут тебя?')
+@router.message(Command('apply', ignore_case=True))
+async def handle_apply(message: Message, state: FSMContext):
+    await message.answer('Привет, я Зеробот!\nДавай запишем тебя в какой-нибудь кружок?\n'
+                         'Напиши свое имя.')
     await state.set_state(FormDB.name)
 
 
@@ -44,9 +46,15 @@ async def grade(message: Message, state: FSMContext):
                  )
     await message.answer(f'Отлично! Твое имя {student_data['name']}, тебе {student_data['age']} лет\n'
                          f'и ты учишься в {student_data['grade']} классе!\n'
-                         f'Приятно познакомиться, {student_data['name']}!')
+                         f'Ты успешно записался в кружок игры на ложках!')
     conn.commit()
     conn.close()
+    await state.clear()
+
+
+@router.message(CommandStart())
+async def handle_start(message: Message):
+    await message.answer('Есть две кнопки:', reply_markup=start_keyboard)
 
 
 @router.message(Command('help', ignore_case=True))
@@ -54,6 +62,7 @@ async def handle_help(message: Message):
     await message.answer('В текущей версии я умею:\n'
                          '/start - запуск бота;\n'
                          '/help - справка по командам;\n'
+                         '/apply - записаться в кружок\n'
                          '/аудио - пришлю аудиофайл;\n'
                          '/треня - пришлю озувучку случайной тренировки\n'
                          '/перевод "текст" - переведу текст на английский')
@@ -96,3 +105,13 @@ async def translate(message: Message, command: CommandObject):
         translator = Translator()
         translated = translator.translate(data, dest='en')
         await bot.send_message(message.chat.id, f'{message.from_user.username} says: "{translated.text}"')
+
+
+@router.message(F.text == 'Привет')
+async def handle_hello(message: Message):
+    await message.answer(f'Привет, {message.from_user.first_name} ✌')
+
+
+@router.message(F.text == 'Пока')
+async def handle_bye(message: Message):
+    await message.answer(f'Пока, {message.from_user.first_name} 👋')
